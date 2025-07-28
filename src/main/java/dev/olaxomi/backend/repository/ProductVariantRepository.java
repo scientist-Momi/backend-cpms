@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ProductVariantRepository extends CrudRepository<ProductVariant, Long> {
     List<ProductVariant> findByProductId(Long productId);
+    boolean existsByProductIdAndWeight(Long productId, double weight);
 }

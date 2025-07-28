@@ -33,6 +33,11 @@ public class ProductVariantService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 
+        boolean duplicate = productVariantRepository.existsByProductIdAndWeight(productId, request.getWeight());
+        if (duplicate) {
+            throw new IllegalArgumentException("Variant with weight " + request.getWeight() + "Kg already exists for this product.");
+        }
+
         ProductVariant variant = new ProductVariant();
         variant.setWeight(request.getWeight());
         variant.setInventory(request.getInventory());

@@ -7,6 +7,7 @@ import dev.olaxomi.backend.response.MessageResponse;
 import dev.olaxomi.backend.service.ProductVariantService;
 import jakarta.validation.constraints.Null;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,12 +24,14 @@ public class ProductVariantController {
         this.variantService = variantService;
     }
 
+    @PreAuthorize("hasAuthority('VIEW_PRODUCT')")
     @GetMapping
     public ResponseEntity<MessageResponse> getVariants(@PathVariable Long productId) {
         List<ProductVariantDto> variants = variantService.getVariantsByProduct(productId);
         return ResponseEntity.ok(new MessageResponse("success", variants));
     }
 
+    @PreAuthorize("hasAuthority('UPDATE_PRODUCT')")
     @PostMapping
     public ResponseEntity<MessageResponse> createVariant(@PathVariable Long productId,
                                            @RequestBody CreateUpdateProductVariantRequest request) {
@@ -40,6 +43,7 @@ public class ProductVariantController {
         }
     }
 
+    @PreAuthorize("hasAuthority('UPDATE_PRODUCT')")
     @PutMapping("/{variantId}")
     public ResponseEntity<MessageResponse> updateVariant(@PathVariable Long variantId,
                                            @RequestBody CreateUpdateProductVariantRequest request) {
@@ -51,6 +55,7 @@ public class ProductVariantController {
         }
     }
 
+    @PreAuthorize("hasAuthority('UPDATE_PRODUCT')")
     @DeleteMapping("/{variantId}")
     public ResponseEntity<MessageResponse> deleteVariant(@PathVariable Long variantId) {
         try{
