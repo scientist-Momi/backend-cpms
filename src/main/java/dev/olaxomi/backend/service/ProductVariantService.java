@@ -47,9 +47,21 @@ public class ProductVariantService {
         return variantMapper.toDto(savedVariant);
     }
 
-    public ProductVariantDto updateVariant(Long variantId, CreateUpdateProductVariantRequest request) {
+    public ProductVariantDto updateVariant(Long productId, Long variantId, CreateUpdateProductVariantRequest request) {
+        if(variantId == null){
+            throw new IllegalArgumentException("No variants created for this product yet.");
+        }
         ProductVariant variant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new EntityNotFoundException("Variant not found"));
+
+        boolean exists = productVariantRepository.existsByProductIdAndWeightAndIdNot(
+                variant.getProduct().getId(),
+                request.getWeight(),
+                variantId
+        );
+        if (exists) {
+            throw new IllegalArgumentException("Duplicate weight for this product");
+        }
 
         variant.setWeight(request.getWeight());
         variant.setInventory(request.getInventory());

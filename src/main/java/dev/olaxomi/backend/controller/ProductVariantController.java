@@ -45,10 +45,10 @@ public class ProductVariantController {
 
     @PreAuthorize("hasAuthority('UPDATE_PRODUCT')")
     @PutMapping("/{variantId}")
-    public ResponseEntity<MessageResponse> updateVariant(@PathVariable Long variantId,
+    public ResponseEntity<MessageResponse> updateVariant(@PathVariable Long productId, @PathVariable Long variantId,
                                            @RequestBody CreateUpdateProductVariantRequest request) {
         try{
-            ProductVariantDto variant = variantService.updateVariant(variantId, request);
+            ProductVariantDto variant = variantService.updateVariant(productId, variantId, request);
             return ResponseEntity.ok(new MessageResponse("success", variant));
         } catch (RuntimeException e) {
             return ResponseEntity.status(NOT_FOUND).body(new MessageResponse(e.getMessage(), null));
