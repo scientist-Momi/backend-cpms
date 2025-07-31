@@ -11,6 +11,7 @@ import java.util.UUID;
 public class CustomerTransactionDto {
     private Long transactionId;
     private UUID customerId;
+    private String customerName;
     private BigDecimal totalAmount;
     private Integer totalQuantity;
     private BigDecimal totalDiscount;

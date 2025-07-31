@@ -20,7 +20,6 @@ public class CustomerTransactionMapper {
         if (transaction == null) return null;
         CustomerTransactionDto dto = modelMapper.map(transaction, CustomerTransactionDto.class);
 
-        // Manually map nested transactionDetails if not automatically handled
         if (transaction.getTransactionDetails() != null) {
             List<CustomerTransactionDetailDto> detailDtos = transaction.getTransactionDetails()
                     .stream()
@@ -29,9 +28,9 @@ public class CustomerTransactionMapper {
             dto.setTransactionDetails(detailDtos);
         }
 
-        // Set customerId explicitly if not mapped automatically
         if (transaction.getCustomer() != null) {
             dto.setCustomerId(transaction.getCustomer().getCustomerId());
+            dto.setCustomerName(transaction.getCustomer().getName());
         }
 
         return dto;
@@ -41,7 +40,6 @@ public class CustomerTransactionMapper {
         if (detail == null) return null;
         CustomerTransactionDetailDto dto = modelMapper.map(detail, CustomerTransactionDetailDto.class);
 
-        // Set productId explicitly if not mapped automatically
         if (detail.getProduct() != null) {
             dto.setProductId(detail.getProduct().getId());
         }
