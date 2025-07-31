@@ -37,6 +37,13 @@ public class CustomerTransactionController {
         return ResponseEntity.ok(new MessageResponse("success", transactions));
     }
 
+    @PreAuthorize("hasAuthority('VIEW_TRANSACTION')")
+    @GetMapping("/t/{transactionId}")
+    public ResponseEntity<MessageResponse> getTransactionById(@PathVariable Long transactionId){
+        CustomerTransactionDto transaction = transactionService.getTransaction(transactionId);
+        return ResponseEntity.ok(new MessageResponse("success", transaction));
+    }
+
     @PreAuthorize("hasAuthority('CREATE_TRANSACTION')")
     @PostMapping("/new")
     public ResponseEntity<MessageResponse> newTransaction(@RequestBody NewCustomerTransactionRequest request){

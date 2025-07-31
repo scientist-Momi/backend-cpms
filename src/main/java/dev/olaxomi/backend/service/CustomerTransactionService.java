@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -53,6 +54,12 @@ public class CustomerTransactionService {
     public List<CustomerTransactionDto> getTransactionsForCustomer(UUID customerId){
         List<CustomerTransaction> transactions = customerTransactionRepository.findByCustomerCustomerId(customerId);
         return customerTransactionMapper.toDtoList(transactions);
+    }
+
+    public CustomerTransactionDto getTransaction(Long transactionId){
+        CustomerTransaction transaction = customerTransactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Customer Transaction not found!"));
+        return customerTransactionMapper.toDto(transaction);
     }
 
     public List<CustomerTransactionDto> getTransactionsByProduct(Long productId) {
