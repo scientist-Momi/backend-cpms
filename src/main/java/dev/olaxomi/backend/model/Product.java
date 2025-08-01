@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -42,4 +43,12 @@ public class Product {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public BigDecimal getLatestPrice() { // use BigDecimal for currency, not Long
+        return prices.stream()
+                .max(Comparator.comparing(ProductPrice::getCreatedAt))
+                .map(ProductPrice::getPrice) // get the unit price field, e.g., getPrice()
+                .orElse(null);
+    }
+
 }

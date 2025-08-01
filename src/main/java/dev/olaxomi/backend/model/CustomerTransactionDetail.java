@@ -29,6 +29,10 @@ public class CustomerTransactionDetail {
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", referencedColumnName = "id")
+    private ProductVariant variant;
+
     @Column(nullable = false)
     private Integer quantity;
 
