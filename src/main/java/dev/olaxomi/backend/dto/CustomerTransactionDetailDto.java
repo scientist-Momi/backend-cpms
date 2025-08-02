@@ -14,4 +14,5 @@ public class CustomerTransactionDetailDto {
     private BigDecimal unitPrice;
     private BigDecimal lineDiscount;
     private ProductVariantDto variant;
+    private ProductDto product;
 }
