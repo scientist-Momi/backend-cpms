@@ -72,86 +72,6 @@ public class CustomerTransactionService {
     }
 
     @Transactional
-//    public CustomerTransactionDto addCustomerTransaction(NewCustomerTransactionRequest request) {
-//        Customer customer = customerRepository.findById(request.getCustomerId())
-//                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
-//
-//        CustomerWallet wallet = customer.getCustomerWallet();
-//        if (wallet == null) throw new IllegalStateException("Customer does not have a wallet.");
-//
-//
-//
-//        int totalQuantity = 0;
-//        BigDecimal totalDiscount = BigDecimal.ZERO;
-//        BigDecimal totalAmount = BigDecimal.ZERO;
-//
-//        for (NewCustomerTransactionDetailRequest detail : request.getTransactionDetails()) {
-//            ProductVariant variant = productVariantRepository.findById(detail.getVariantId())
-//                    .orElseThrow(() -> new EntityNotFoundException("Product variant not found"));
-//
-//            Product product = variant.getProduct();
-//            if (product == null) {
-//                throw new EntityNotFoundException("Product not found for variant");
-//            }
-//
-//            if (detail.getProductId() != null && !product.getId().equals(detail.getProductId())) {
-//                throw new IllegalArgumentException("Variant does not belong to the specified product");
-//            }
-//
-//            BigDecimal unitPrice = product.getLatestPrice();
-//            BigDecimal weight = BigDecimal.valueOf(variant.getWeight());
-//
-//            totalQuantity += detail.getQuantity();
-//            BigDecimal lineDiscount = detail.getLineDiscount() != null ? detail.getLineDiscount() : BigDecimal.ZERO;
-//            totalDiscount = totalDiscount.add(lineDiscount);
-//
-//            BigDecimal lineTotal = weight.multiply(unitPrice)
-//                    .multiply(BigDecimal.valueOf(totalQuantity))
-//                    .subtract(lineDiscount);
-//            totalAmount = totalAmount.add(lineTotal);
-//        }
-//
-//        wallet.setBalance(wallet.getBalance().subtract(totalAmount));
-//        walletRepository.save(wallet);
-//
-//        WalletTransaction walletTx = new WalletTransaction();
-//        walletTx.setWallet(wallet);
-//        walletTx.setAmount(totalAmount.negate());
-//        walletTx.setBalanceAfterTransaction(wallet.getBalance());
-//        walletTx.setTransactionType(TransactionType.PURCHASE);
-//        walletTx.setReference("Purchase on " + LocalDateTime.now());
-//        walletTx.setDescription("Purchase of products");
-//        walletTransactionRepository.save(walletTx);
-//
-//        CustomerTransaction transaction = new CustomerTransaction();
-//        transaction.setCustomer(customer);
-//        transaction.setTotalAmount(totalAmount);
-//        transaction.setTotalQuantity(totalQuantity);
-//        transaction.setTotalDiscount(totalDiscount);
-//
-//        List<CustomerTransactionDetail> details = new ArrayList<>();
-//        for (NewCustomerTransactionDetailRequest detailReq : request.getTransactionDetails()) {
-//            Product product = productRepository.findById(detailReq.getProductId())
-//                    .orElseThrow(() -> new EntityNotFoundException("Product not found"));
-//
-//            ProductVariant variant = productVariantRepository.findById(detailReq.getVariantId())
-//                    .orElseThrow(() -> new EntityNotFoundException("Product variant not found"));
-//
-//            CustomerTransactionDetail detail = new CustomerTransactionDetail();
-//            detail.setTransaction(transaction);
-//            detail.setProduct(product);
-//            detail.setVariant(variant);
-//            detail.setQuantity(detailReq.getQuantity());
-//            detail.setUnitPrice(product.getLatestPrice());
-//            detail.setLineDiscount(detailReq.getLineDiscount());
-//            details.add(detail);
-//        }
-//        transaction.setTransactionDetails(details);
-//
-//        CustomerTransaction savedTransaction = customerTransactionRepository.save(transaction);
-//
-//        return customerTransactionMapper.toDto(savedTransaction);
-//    }
     public CustomerTransactionDto addCustomerTransaction(NewCustomerTransactionRequest request) {
         // 1. Fetch customer and validate wallet presence
         Customer customer = customerRepository.findById(request.getCustomerId())
@@ -210,8 +130,10 @@ public class CustomerTransactionService {
             totalAmount = totalAmount.add(lineTotal);
         }
 
+        BigDecimal newBalance = getBigDecimal(customer, wallet, totalAmount);
+
         // 3. Deduct totalAmount from wallet balance and save
-        wallet.setBalance(wallet.getBalance().subtract(totalAmount));
+        wallet.setBalance(newBalance);
         walletRepository.save(wallet);
 
         // 4. Create and save wallet transaction for this purchase
@@ -253,6 +175,19 @@ public class CustomerTransactionService {
 
         // 8. Map and return DTO
         return customerTransactionMapper.toDto(savedTransaction);
+    }
+
+    private static BigDecimal getBigDecimal(Customer customer, CustomerWallet wallet, BigDecimal totalAmount) {
+        BigDecimal creditLimit = customer.getCreditLimit() != null ? customer.getCreditLimit() : BigDecimal.ZERO;
+        BigDecimal newBalance = wallet.getBalance().subtract(totalAmount);
+        BigDecimal negativeCreditLimit = creditLimit.negate();
+
+        if (newBalance.compareTo(negativeCreditLimit) < 0) {
+            throw new IllegalStateException(
+                    "Transaction declined: wallet balance cannot go below -" + creditLimit.toPlainString() + " due to credit limit."
+            );
+        }
+        return newBalance;
     }
 
 
