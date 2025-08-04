@@ -118,6 +118,10 @@ public class CustomerTransactionService {
             BigDecimal weight = BigDecimal.valueOf(variant.getWeight());
             int quantity = detail.getQuantity();
 
+            // Update quantitySold
+            int previousSold = product.getQuantitySold();
+            product.setQuantitySold(previousSold + quantity);
+
             BigDecimal lineDiscount = detail.getLineDiscount() != null ? detail.getLineDiscount() : BigDecimal.ZERO;
 
             // Correct calculation: weight * unit price * quantity - discount
@@ -128,6 +132,10 @@ public class CustomerTransactionService {
             totalQuantity += quantity;
             totalDiscount = totalDiscount.add(lineDiscount);
             totalAmount = totalAmount.add(lineTotal);
+        }
+
+        for (Product product : productCache.values()) {
+            productRepository.save(product);
         }
 
         BigDecimal newBalance = getBigDecimal(customer, wallet, totalAmount);
