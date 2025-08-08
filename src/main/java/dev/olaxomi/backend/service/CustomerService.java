@@ -31,7 +31,6 @@ public class CustomerService {
 
     public List<CustomerDto> allCustomers(){
         List<Customer> initCustomers = customerRepository.findAllOrderByCreatedAtDesc();
-//        .forEach(initCustomers::add);
         return customerMapper.toDtoList(initCustomers);
     }
 
