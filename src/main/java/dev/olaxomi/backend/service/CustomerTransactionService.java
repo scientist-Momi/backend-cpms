@@ -14,6 +14,7 @@ import dev.olaxomi.backend.request.NewCustomerTransactionRequest;
 import dev.olaxomi.backend.request.UpdateCustomerTransactionRequest;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,8 +32,9 @@ public class CustomerTransactionService {
     private final WalletTransactionRepository walletTransactionRepository;
     private final ProductVariantRepository productVariantRepository;
     private final CustomerMapper customerMapper;
+    private final AdminActivityService activityService;
 
-    public CustomerTransactionService(CustomerRepository customerRepository, ProductRepository productRepository, CustomerTransactionDetailRepository transactionDetailRepository, CustomerTransactionRepository customerTransactionRepository, CustomerWalletRepository walletRepository, CustomerTransactionMapper customerTransactionMapper, WalletTransactionRepository walletTransactionRepository, ProductVariantRepository productVariantRepository, CustomerMapper customerMapper) {
+    public CustomerTransactionService(CustomerRepository customerRepository, ProductRepository productRepository, CustomerTransactionDetailRepository transactionDetailRepository, CustomerTransactionRepository customerTransactionRepository, CustomerWalletRepository walletRepository, CustomerTransactionMapper customerTransactionMapper, WalletTransactionRepository walletTransactionRepository, ProductVariantRepository productVariantRepository, CustomerMapper customerMapper, AdminActivityService activityService) {
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
         this.transactionDetailRepository = transactionDetailRepository;
@@ -42,6 +44,7 @@ public class CustomerTransactionService {
         this.walletTransactionRepository = walletTransactionRepository;
         this.productVariantRepository = productVariantRepository;
         this.customerMapper = customerMapper;
+        this.activityService = activityService;
     }
 
     @Transactional
@@ -181,7 +184,14 @@ public class CustomerTransactionService {
         // 7. Save transaction (cascades details if configured)
         CustomerTransaction savedTransaction = customerTransactionRepository.save(transaction);
 
-        // 8. Map and return DTO
+
+
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+
+
+
+
         return customerTransactionMapper.toDto(savedTransaction);
     }
 
