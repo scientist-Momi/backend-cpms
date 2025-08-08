@@ -1,6 +1,6 @@
 package dev.olaxomi.backend.enums;
 
-public enum AdminAction {
+public enum ActionType {
     PRODUCT_DELETE,
     CUSTOMER_DELETE
 }

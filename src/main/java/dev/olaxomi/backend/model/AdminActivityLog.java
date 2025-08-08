@@ -1,11 +1,14 @@
 package dev.olaxomi.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.olaxomi.backend.enums.AdminAction;
+import dev.olaxomi.backend.enums.ActionType;
+import dev.olaxomi.backend.enums.Status;
+import dev.olaxomi.backend.enums.TargetType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -27,9 +30,18 @@ public class AdminActivityLog {
     @Column(name = "ip_address")
     private String ipAddress;
 
-    @Column(nullable = false)
-    private AdminAction action;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "action_type",nullable = false)
+    private ActionType actionType;
 
-    @Column(nullable = false, updatable = false )
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_type", nullable = false)
+    private TargetType targetType;
+
+    @Column(name = "target_id",nullable = false)
+    private String targetId;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }
