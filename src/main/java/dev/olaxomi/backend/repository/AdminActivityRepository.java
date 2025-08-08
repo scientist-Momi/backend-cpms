@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface AdminActivityRepository extends CrudRepository<AdminActivityLog, Long> {
-    @Query("SELECT l FROM admin_activity_log l ORDER BY l.createdAt DESC")
+    @Query("SELECT l FROM AdminActivityLog l ORDER BY l.createdAt DESC")
     List<AdminActivityLog> findAllOrderByCreatedAtDesc();
 
     List<AdminActivityLog> findByUserIdOrderByCreatedAtDesc(Long userId);
