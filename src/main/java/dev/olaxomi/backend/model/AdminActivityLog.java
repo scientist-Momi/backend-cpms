@@ -35,7 +35,7 @@ public class AdminActivityLog {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false)
-    private Permission actionType;
+    private ActionType actionType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "target_type", nullable = false)

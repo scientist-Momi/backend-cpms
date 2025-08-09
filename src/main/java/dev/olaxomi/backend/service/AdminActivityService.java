@@ -1,6 +1,7 @@
 package dev.olaxomi.backend.service;
 
 import dev.olaxomi.backend.dto.AdminActivityLogDto;
+import dev.olaxomi.backend.enums.ActionType;
 import dev.olaxomi.backend.enums.Permission;
 import dev.olaxomi.backend.enums.TargetType;
 import dev.olaxomi.backend.mapper.AdminActivityLogMapper;
@@ -23,7 +24,7 @@ public class AdminActivityService {
 
     public void logActivity(
             User user,
-            Permission actionType,
+            ActionType actionType,
             TargetType targetType,
             String targetId,
             String details,
