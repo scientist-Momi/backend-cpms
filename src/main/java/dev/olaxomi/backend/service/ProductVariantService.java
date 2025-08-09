@@ -1,6 +1,8 @@
 package dev.olaxomi.backend.service;
 
 import dev.olaxomi.backend.dto.ProductVariantDto;
+import dev.olaxomi.backend.enums.ActionType;
+import dev.olaxomi.backend.enums.TargetType;
 import dev.olaxomi.backend.mapper.ProductMapper;
 import dev.olaxomi.backend.mapper.ProductVariantMapper;
 import dev.olaxomi.backend.model.Product;
@@ -18,11 +20,13 @@ public class ProductVariantService {
     private final ProductVariantRepository productVariantRepository;
     private final ProductRepository productRepository;
     private final ProductVariantMapper variantMapper;
+    private final AdminActivityService activityService;
 
-    public ProductVariantService(ProductVariantRepository productVariantRepository, ProductRepository productRepository, ProductMapper productMapper, ProductVariantMapper variantMapper) {
+    public ProductVariantService(ProductVariantRepository productVariantRepository, ProductRepository productRepository, ProductMapper productMapper, ProductVariantMapper variantMapper, AdminActivityService activityService) {
         this.productVariantRepository = productVariantRepository;
         this.productRepository = productRepository;
         this.variantMapper = variantMapper;
+        this.activityService = activityService;
     }
 
     public List<ProductVariantDto> getVariantsByProduct(Long productId) {
@@ -44,6 +48,22 @@ public class ProductVariantService {
         variant.setProduct(product);
 
         ProductVariant savedVariant = productVariantRepository.save(variant);
+
+        String logDetails = String.format(
+                "Created new variant for product '%s' (Product ID: %d) → Variant ID: %d, Weight: %.2fKg, Inventory: %d",
+                product.getName(),
+                product.getId(),
+                savedVariant.getId(),
+                savedVariant.getWeight(),
+                savedVariant.getInventory()
+        );
+
+        activityService.logActivity(
+                ActionType.CREATE_VARIANT, // ✅ Recommend adding this to enum; or use CREATE_PRODUCT if no variant-specific type
+                TargetType.PRODUCT_VARIANT, // ✅ Recommend adding; or keep TargetType.PRODUCT
+                String.valueOf(savedVariant.getId()),
+                logDetails
+        );
         return variantMapper.toDto(savedVariant);
     }
 

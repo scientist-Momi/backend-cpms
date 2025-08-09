@@ -296,6 +296,21 @@ public class CustomerTransactionService {
         walletTx.setReference(request.getNote() != null ? request.getNote() : "Deposit on " + LocalDateTime.now());
         walletTransactionRepository.save(walletTx);
 
+        String logDetails = String.format(
+                "Processed deposit transaction ID %d for customer ID %s with amount %s. New balance: %s",
+                walletTx.getTransactionId(),
+                customer.getCustomerId(),
+                request.getAmount().toPlainString(),
+                wallet.getBalance().toPlainString()
+        );
+
+        activityService.logActivity(
+                ActionType.CUSTOMER_DEPOSIT, // or ActionType.DEPOSIT if you have it
+                TargetType.CUSTOMER,
+                String.valueOf(walletTx.getTransactionId()),
+                logDetails
+        );
+
         return customerMapper.toDto(customer);
     }
 

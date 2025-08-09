@@ -4,5 +4,6 @@ public enum TargetType {
     PRODUCT,
     USER,
     TRANSACTION,
-    CUSTOMER
+    CUSTOMER,
+    PRODUCT_VARIANT
 }
