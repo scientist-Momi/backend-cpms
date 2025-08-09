@@ -3,8 +3,10 @@ package dev.olaxomi.backend.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.olaxomi.backend.dto.UserDto;
+import dev.olaxomi.backend.enums.ActionType;
 import dev.olaxomi.backend.enums.Permission;
 import dev.olaxomi.backend.enums.Role;
+import dev.olaxomi.backend.enums.TargetType;
 import dev.olaxomi.backend.mapper.UserMapper;
 import dev.olaxomi.backend.model.UserPermission;
 import dev.olaxomi.backend.request.LoginUserRequest;
@@ -39,12 +41,13 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final UserMapper userMapper;
+    private final AdminActivityService activityService;
 //    private final EmailService emailService;
 
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
-            PasswordEncoder passwordEncoder, PermissionService permissionService, JwtService jwtService, UserDetailsService userDetailsService, UserMapper userMapper
+            PasswordEncoder passwordEncoder, PermissionService permissionService, JwtService jwtService, UserDetailsService userDetailsService, UserMapper userMapper, AdminActivityService activityService
 //            EmailService emailService
     ) {
         this.authenticationManager = authenticationManager;
@@ -55,6 +58,7 @@ public class AuthenticationService {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.userMapper = userMapper;
+        this.activityService = activityService;
     }
 
     public UserDto register(NewUserRequest input) throws JsonProcessingException {
@@ -76,6 +80,18 @@ public class AuthenticationService {
 //        Set<Permission> defaultPermissions = Set.of(Permission.values());
         System.out.println(new ObjectMapper().writeValueAsString(defaultPermissions)); // Debugging
         permissionService.updatePermission(savedUser.getId(), defaultPermissions);
+
+        String logDetails = String.format(
+                "Created new user with user ID %s",
+                savedUser.getId()
+        );
+
+        activityService.logActivity(
+                ActionType.CREATE_USER,
+                TargetType.USER,
+                String.valueOf(savedUser.getId()),
+                logDetails
+        );
 
         return userMapper.toDto(user);
     }
@@ -107,6 +123,18 @@ public class AuthenticationService {
         System.out.println(extraClaims);
         String jwtToken = jwtService.generateToken(extraClaims, userDetails);
         UserPermission permission = permissionService.getPermissions(user.getId());
+
+        String logDetails = String.format(
+                "User with ID %s logged in successfully",
+                user.getId()
+        );
+
+        activityService.logActivity(
+                ActionType.SIGN_IN_USER,  // adjust based on your enum values
+                TargetType.USER,
+                user.getId().toString(),
+                logDetails
+        );
 
         return new LoginResponse("success", jwtToken, permission.getPermissions(), jwtService.getExpirationTime());
     }

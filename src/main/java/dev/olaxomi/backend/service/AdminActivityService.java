@@ -8,7 +8,12 @@ import dev.olaxomi.backend.mapper.AdminActivityLogMapper;
 import dev.olaxomi.backend.model.AdminActivityLog;
 import dev.olaxomi.backend.model.User;
 import dev.olaxomi.backend.repository.AdminActivityRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 
@@ -23,20 +28,22 @@ public class AdminActivityService {
     }
 
     public void logActivity(
-            User user,
             ActionType actionType,
             TargetType targetType,
             String targetId,
-            String details,
-            String ip
+            String details
     ) {
         AdminActivityLog log = new AdminActivityLog();
-        log.setUser(user);
+
+        User currentUser = getCurrentUser();
+        String ipAddress = getRequestIp();
+
+        log.setUser(currentUser);
         log.setActionType(actionType);
         log.setTargetType(targetType);
         log.setTargetId(targetId);
         log.setDetails(details);
-        log.setIpAddress(ip);
+        log.setIpAddress(ipAddress);
         adminActivityRepository.save(log);
     }
 
@@ -48,6 +55,21 @@ public class AdminActivityService {
     public List<AdminActivityLogDto> getById(Long userId){
         List<AdminActivityLog> initLogs = adminActivityRepository.findByUserIdOrderByCreatedAtDesc(userId);
         return adminActivityLogMapper.toDtoList(initLogs);
+    }
+
+    public static User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof User) {
+            return (User) auth.getPrincipal();
+        }
+        return null;
+    }
+
+
+    private String getRequestIp() {
+        HttpServletRequest request =
+                ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        return request.getRemoteAddr();
     }
 
 }

@@ -190,8 +190,6 @@ public class CustomerTransactionService {
         // 7. Save transaction (cascades details if configured)
         CustomerTransaction savedTransaction = customerTransactionRepository.save(transaction);
 
-        User currentUser = getCurrentUser();
-        String ipAddress = getRequestIp();
         String logDetails = String.format(
                 "Created transaction ID %d for customer ID %s with totalAmount %s and totalQuantity %d",
                 savedTransaction.getTransactionId(),
@@ -201,29 +199,12 @@ public class CustomerTransactionService {
         );
 
         activityService.logActivity(
-                currentUser,
                 ActionType.CREATE_TRANSACTION,
                 TargetType.TRANSACTION,
                 String.valueOf(savedTransaction.getTransactionId()),
-                logDetails,
-                ipAddress
+                logDetails
         );
         return customerTransactionMapper.toDto(savedTransaction);
-    }
-
-    public static User getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof User) {
-            return (User) auth.getPrincipal();
-        }
-        return null;
-    }
-
-
-    private String getRequestIp() {
-        HttpServletRequest request =
-                ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        return request.getRemoteAddr();
     }
 
     private static BigDecimal getBigDecimal(Customer customer, CustomerWallet wallet, BigDecimal totalAmount) {

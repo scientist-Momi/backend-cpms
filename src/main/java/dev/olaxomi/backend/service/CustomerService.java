@@ -1,7 +1,9 @@
 package dev.olaxomi.backend.service;
 
 import dev.olaxomi.backend.dto.CustomerDto;
+import dev.olaxomi.backend.enums.ActionType;
 import dev.olaxomi.backend.enums.Status;
+import dev.olaxomi.backend.enums.TargetType;
 import dev.olaxomi.backend.mapper.CustomerMapper;
 import dev.olaxomi.backend.model.Customer;
 import dev.olaxomi.backend.model.CustomerWallet;
@@ -23,10 +25,12 @@ import java.util.UUID;
 public class CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final AdminActivityService activityService;
 
-    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper, AdminActivityService activityService) {
         this.customerRepository = customerRepository;
         this.customerMapper = customerMapper;
+        this.activityService = activityService;
     }
 
     public List<CustomerDto> allCustomers(){
@@ -71,12 +75,26 @@ public class CustomerService {
         wallet.setCustomer(customer);
         customer.setCustomerWallet(wallet);
 
+        Customer savedCustomer = customerRepository.save(customer);
+
+        String logDetails = String.format(
+                "Created new customer with customer ID %s",
+                savedCustomer.getCustomerId()
+        );
+
+        activityService.logActivity(
+                ActionType.CREATE_CUSTOMER,
+                TargetType.CUSTOMER,
+                String.valueOf(savedCustomer.getCustomerId()),
+                logDetails
+        );
+
         return customerMapper.toDto(customerRepository.save(customer));
     }
 
     @Transactional
-    public CustomerDto updateCustomer(UpdateCustomerRequest request, UUID customerId){
-        return customerRepository.findById(customerId)
+    public CustomerDto updateCustomer(UpdateCustomerRequest request, UUID customerId) {
+        Customer updatedCustomer = customerRepository.findById(customerId)
                 .map(existingCustomer -> {
                     if (request.getName() != null) existingCustomer.setName(request.getName());
                     if (request.getAlias() != null) existingCustomer.setAlias(request.getAlias());
@@ -87,10 +105,25 @@ public class CustomerService {
                     if (request.getCustomerType() != null) existingCustomer.setCustomerType(request.getCustomerType());
                     if (request.getCreditLimit() != null) existingCustomer.setCreditLimit(request.getCreditLimit());
                     if (request.getCustomerNotes() != null) existingCustomer.setCustomerNotes(request.getCustomerNotes());
-                    return customerMapper.toDto(customerRepository.save(existingCustomer));
+                    return customerRepository.save(existingCustomer);
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found!"));
+
+        String logDetails = String.format(
+                "Updated customer with customer ID %s",
+                updatedCustomer.getCustomerId()
+        );
+
+        activityService.logActivity(
+                ActionType.UPDATE_CUSTOMER,
+                TargetType.CUSTOMER,
+                updatedCustomer.getCustomerId().toString(),
+                logDetails
+        );
+
+        return customerMapper.toDto(updatedCustomer);
     }
+
 
     public List<CustomerDto> searchCustomersByName(String query) {
         if (query == null || query.trim().isEmpty() || query.length() < 3) {
