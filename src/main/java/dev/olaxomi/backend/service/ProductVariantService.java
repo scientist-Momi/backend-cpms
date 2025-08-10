@@ -59,8 +59,8 @@ public class ProductVariantService {
         );
 
         activityService.logActivity(
-                ActionType.CREATE_VARIANT, // ✅ Recommend adding this to enum; or use CREATE_PRODUCT if no variant-specific type
-                TargetType.PRODUCT_VARIANT, // ✅ Recommend adding; or keep TargetType.PRODUCT
+                ActionType.CREATE_VARIANT,
+                TargetType.PRODUCT_VARIANT,
                 String.valueOf(savedVariant.getId()),
                 logDetails
         );
@@ -87,13 +87,45 @@ public class ProductVariantService {
         variant.setInventory(request.getInventory());
 
         ProductVariant savedVariant = productVariantRepository.save(variant);
+        String logDetails = String.format(
+                "Updated variant for product '%s' (Product ID: %d) → Variant ID: %d, New Weight: %.2fKg, New Inventory: %d",
+                savedVariant.getProduct().getName(),
+                savedVariant.getProduct().getId(),
+                savedVariant.getId(),
+                savedVariant.getWeight(),
+                savedVariant.getInventory()
+        );
+
+        activityService.logActivity(
+                ActionType.UPDATE_VARIANT,
+                TargetType.PRODUCT_VARIANT,
+                savedVariant.getId().toString(),
+                logDetails
+        );
         return variantMapper.toDto(savedVariant);
     }
 
     public void deleteVariant(Long variantId) {
-        if (!productVariantRepository.existsById(variantId)) {
-            throw new EntityNotFoundException("Variant not found");
-        }
+        ProductVariant variant = productVariantRepository.findById(variantId)
+                .orElseThrow(() -> new EntityNotFoundException("Variant not found"));
+
+        String logDetails = String.format(
+                "Deleted variant ID: %d (Weight: %.2fKg, Inventory: %d) from product '%s' (Product ID: %d)",
+                variant.getId(),
+                variant.getWeight(),
+                variant.getInventory(),
+                variant.getProduct().getName(),
+                variant.getProduct().getId()
+        );
+
+        activityService.logActivity(
+                ActionType.DELETE_VARIANT,
+                TargetType.PRODUCT_VARIANT,
+                variant.getId().toString(),
+                logDetails
+        );
+
         productVariantRepository.deleteById(variantId);
     }
+
 }
