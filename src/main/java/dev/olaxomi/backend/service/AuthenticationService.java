@@ -130,7 +130,8 @@ public class AuthenticationService {
         );
 
         activityService.logActivity(
-                ActionType.SIGN_IN_USER,  // adjust based on your enum values
+                user,
+                ActionType.SIGN_IN_USER,
                 TargetType.USER,
                 user.getId().toString(),
                 logDetails

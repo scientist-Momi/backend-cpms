@@ -47,6 +47,23 @@ public class AdminActivityService {
         adminActivityRepository.save(log);
     }
 
+    public void logActivity(
+            User actor,
+            ActionType actionType,
+            TargetType targetType,
+            String targetId,
+            String details
+    ) {
+        AdminActivityLog log = new AdminActivityLog();
+        log.setUser(actor);
+        log.setActionType(actionType);
+        log.setTargetType(targetType);
+        log.setTargetId(targetId);
+        log.setDetails(details);
+        log.setIpAddress(getRequestIp());
+        adminActivityRepository.save(log);
+    }
+
     public List<AdminActivityLogDto> allLogs(){
         List<AdminActivityLog> initLogs = adminActivityRepository.findAllOrderByCreatedAtDesc();
         return adminActivityLogMapper.toDtoList(initLogs);
