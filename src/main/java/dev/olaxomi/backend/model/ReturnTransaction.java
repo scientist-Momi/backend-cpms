@@ -1,7 +1,6 @@
 package dev.olaxomi.backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,4 +13,11 @@ import lombok.ToString;
 @Entity
 @Table(name = "return_transactions")
 public class ReturnTransaction {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "return_id")
+    private Long returnId;
+
+    @ManyToOne
+    private CustomerTransaction transaction;
 }
