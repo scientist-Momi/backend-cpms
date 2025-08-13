@@ -314,48 +314,48 @@ public class CustomerTransactionService {
         return customerMapper.toDto(customer);
     }
 
-    public CustomerDto processReturn(CustomerReturnRequest request) {
-        CustomerTransaction purchase = customerTransactionRepository.findById(request.getPurchaseId())
-                .orElseThrow(() -> new EntityNotFoundException("Purchase not found"));
-
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
-
-        if (request.getReturnQuantity() > purchase.getQuantityPurchased()) {
-            throw new IllegalArgumentException("Return quantity exceeds purchased quantity");
-        }
-
-        // Adjust inventory
-        product.setInventory(product.getInventory() + request.getReturnQuantity());
-        productRepository.save(product);
-
-        // Create return transaction
-        ReturnTransaction returnTx = new ReturnTransaction();
-        returnTx.setPurchase(purchase);
-        returnTx.setProduct(product);
-        returnTx.setQuantity(request.getReturnQuantity());
-        returnTx.setReturnDate(LocalDateTime.now());
-        returnTransactionRepository.save(returnTx);
-
-        // Adjust customer wallet or refund accordingly (if applicable)
-
-        // Log activity
-        String logDetails = String.format(
-                "Processed return of %d units of product ID %d for customer ID %s",
-                request.getReturnQuantity(),
-                product.getId(),
-                purchase.getCustomer().getCustomerId()
-        );
-
-        activityService.logActivity(
-                ActionType.PROCESS_RETURN,
-                TargetType.RETURN,
-                String.valueOf(returnTx.getId()),
-                logDetails
-        );
-
-        return customerMapper.toDto(purchase.getCustomer());
-    }
+//    public CustomerDto processReturn(CustomerReturnRequest request) {
+//        CustomerTransaction purchase = customerTransactionRepository.findById(request.getPurchaseId())
+//                .orElseThrow(() -> new EntityNotFoundException("Purchase not found"));
+//
+//        Product product = productRepository.findById(request.getProductId())
+//                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+//
+//        if (request.getReturnQuantity() > purchase.getQuantityPurchased()) {
+//            throw new IllegalArgumentException("Return quantity exceeds purchased quantity");
+//        }
+//
+//        // Adjust inventory
+//        product.setInventory(product.getInventory() + request.getReturnQuantity());
+//        productRepository.save(product);
+//
+//        // Create return transaction
+//        ReturnTransaction returnTx = new ReturnTransaction();
+//        returnTx.setPurchase(purchase);
+//        returnTx.setProduct(product);
+//        returnTx.setQuantity(request.getReturnQuantity());
+//        returnTx.setReturnDate(LocalDateTime.now());
+//        returnTransactionRepository.save(returnTx);
+//
+//        // Adjust customer wallet or refund accordingly (if applicable)
+//
+//        // Log activity
+//        String logDetails = String.format(
+//                "Processed return of %d units of product ID %d for customer ID %s",
+//                request.getReturnQuantity(),
+//                product.getId(),
+//                purchase.getCustomer().getCustomerId()
+//        );
+//
+//        activityService.logActivity(
+//                ActionType.PROCESS_RETURN,
+//                TargetType.RETURN,
+//                String.valueOf(returnTx.getId()),
+//                logDetails
+//        );
+//
+//        return customerMapper.toDto(purchase.getCustomer());
+//    }
 
 
 }

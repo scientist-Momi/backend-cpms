@@ -49,6 +49,8 @@ public class ReturnTransaction {
     @Column(name = "total_discount", nullable = false)
     private BigDecimal totalDiscount;
 
+    private String reason;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
