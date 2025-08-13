@@ -19,5 +19,6 @@ public class ReturnTransaction {
     private Long returnId;
 
     @ManyToOne
+    @JoinColumn(name = "transaction_id", nullable = false)
     private CustomerTransaction transaction;
 }
