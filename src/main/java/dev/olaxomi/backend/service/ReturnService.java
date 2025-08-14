@@ -4,8 +4,11 @@ import dev.olaxomi.backend.dto.ReturnTransactionDetailDto;
 import dev.olaxomi.backend.dto.ReturnTransactionDto;
 import dev.olaxomi.backend.mapper.CustomerTransactionMapper;
 import dev.olaxomi.backend.mapper.ReturnTransactionMapper;
+import dev.olaxomi.backend.model.CustomerTransaction;
 import dev.olaxomi.backend.model.ReturnTransaction;
 import dev.olaxomi.backend.repository.*;
+import dev.olaxomi.backend.request.ReturnRequest;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -57,5 +60,10 @@ public class ReturnService {
     public List<ReturnTransactionDto> getReturnsByProduct(Long productId){
         List<ReturnTransaction> transactions = returnRepository.findByProductId(productId);
         return returnTransactionMapper.toDtoList(transactions);
+    }
+
+    public ReturnTransactionDto processReturn(ReturnRequest request){
+        CustomerTransaction purchase = customerTransactionRepository.findById(request.getTransactionId())
+                .orElseThrow(() -> new EntityNotFoundException("Purchase not found"));
     }
 }
