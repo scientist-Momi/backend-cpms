@@ -6,6 +6,7 @@ import dev.olaxomi.backend.mapper.CustomerTransactionMapper;
 import dev.olaxomi.backend.mapper.ReturnTransactionMapper;
 import dev.olaxomi.backend.model.Customer;
 import dev.olaxomi.backend.model.CustomerTransaction;
+import dev.olaxomi.backend.model.CustomerWallet;
 import dev.olaxomi.backend.model.ReturnTransaction;
 import dev.olaxomi.backend.repository.*;
 import dev.olaxomi.backend.request.ReturnRequest;
@@ -69,5 +70,8 @@ public class ReturnService {
 
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+
+        CustomerWallet wallet = customer.getCustomerWallet();
+        if (wallet == null) throw new IllegalStateException("Customer does not have a wallet.");
     }
 }
