@@ -4,6 +4,7 @@ import dev.olaxomi.backend.dto.ReturnTransactionDetailDto;
 import dev.olaxomi.backend.dto.ReturnTransactionDto;
 import dev.olaxomi.backend.mapper.CustomerTransactionMapper;
 import dev.olaxomi.backend.mapper.ReturnTransactionMapper;
+import dev.olaxomi.backend.model.Customer;
 import dev.olaxomi.backend.model.CustomerTransaction;
 import dev.olaxomi.backend.model.ReturnTransaction;
 import dev.olaxomi.backend.repository.*;
@@ -65,5 +66,8 @@ public class ReturnService {
     public ReturnTransactionDto processReturn(ReturnRequest request){
         CustomerTransaction purchase = customerTransactionRepository.findById(request.getTransactionId())
                 .orElseThrow(() -> new EntityNotFoundException("Purchase not found"));
+
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
     }
 }
