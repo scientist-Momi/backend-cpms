@@ -4,10 +4,7 @@ import dev.olaxomi.backend.dto.ReturnTransactionDetailDto;
 import dev.olaxomi.backend.dto.ReturnTransactionDto;
 import dev.olaxomi.backend.mapper.CustomerTransactionMapper;
 import dev.olaxomi.backend.mapper.ReturnTransactionMapper;
-import dev.olaxomi.backend.model.Customer;
-import dev.olaxomi.backend.model.CustomerTransaction;
-import dev.olaxomi.backend.model.CustomerWallet;
-import dev.olaxomi.backend.model.ReturnTransaction;
+import dev.olaxomi.backend.model.*;
 import dev.olaxomi.backend.repository.*;
 import dev.olaxomi.backend.request.ReturnRequest;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,7 +12,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -77,5 +76,8 @@ public class ReturnService {
 
         int totalQuantity = 0;
         BigDecimal totalAmount = BigDecimal.ZERO;
+
+        Map<Long, ProductVariant> variantCache = new HashMap<>();
+        Map<Long, Product> productCache = new HashMap<>();
     }
 }
