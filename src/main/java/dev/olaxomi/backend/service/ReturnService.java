@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -73,5 +74,8 @@ public class ReturnService {
 
         CustomerWallet wallet = customer.getCustomerWallet();
         if (wallet == null) throw new IllegalStateException("Customer does not have a wallet.");
+
+        int totalQuantity = 0;
+        BigDecimal totalAmount = BigDecimal.ZERO;
     }
 }
