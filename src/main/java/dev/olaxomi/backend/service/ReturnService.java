@@ -6,16 +6,14 @@ import dev.olaxomi.backend.mapper.CustomerTransactionMapper;
 import dev.olaxomi.backend.mapper.ReturnTransactionMapper;
 import dev.olaxomi.backend.model.*;
 import dev.olaxomi.backend.repository.*;
+import dev.olaxomi.backend.request.ReturnDetailRequest;
 import dev.olaxomi.backend.request.ReturnRequest;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ReturnService {
@@ -65,7 +63,7 @@ public class ReturnService {
     }
 
     public ReturnTransactionDto processReturn(ReturnRequest request){
-        CustomerTransaction purchase = customerTransactionRepository.findById(request.getTransactionId())
+        CustomerTransaction transaction = customerTransactionRepository.findById(request.getTransactionId())
                 .orElseThrow(() -> new EntityNotFoundException("Purchase not found"));
 
         Customer customer = customerRepository.findById(request.getCustomerId())
@@ -76,8 +74,44 @@ public class ReturnService {
 
         int totalQuantity = 0;
         BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal totalDiscount = BigDecimal.ZERO;
 
         Map<Long, ProductVariant> variantCache = new HashMap<>();
         Map<Long, Product> productCache = new HashMap<>();
+
+        List<ReturnTransactionDetail> returnDetails = new ArrayList<>();
+
+        for (ReturnDetailRequest detailReq : request.getReturnDetails()) {
+            Long variantId = detailReq.getVariantId();
+            Long productId = detailReq.getProductId();
+
+            ProductVariant variant = variantCache.computeIfAbsent(variantId, id ->
+                    productVariantRepository.findById(id)
+                            .orElseThrow(() -> new EntityNotFoundException("Product variant not found for ID: " + id))
+            );
+
+            Product product = variant.getProduct();
+
+            if (product == null) throw new EntityNotFoundException("Product not found for variant ID: " + variantId);
+            productCache.putIfAbsent(product.getId(), product);
+
+            if (productId != null && !product.getId().equals(productId)) {
+                throw new IllegalArgumentException(
+                        "Variant ID " + variantId + " does not belong to product ID " + productId);
+            }
+
+            CustomerTransactionDetail originalDetail = transaction.getTransactionDetails().stream()
+                    .filter(td -> td.getProduct().getId().equals(product.getId())
+                            && td.getVariant().getId().equals(variant.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Original transaction detail not found for product/variant"));
+
+            if (detailReq.getQuantity() > originalDetail.getQuantity()) {
+                throw new IllegalArgumentException("Return quantity exceeds purchased quantity for product/variant");
+            }
+
+            variant.setInventory(variant.getInventory() + detailReq.getQuantity());
+        }
     }
 }
