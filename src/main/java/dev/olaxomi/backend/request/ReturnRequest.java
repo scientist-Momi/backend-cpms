@@ -9,5 +9,6 @@ import java.util.UUID;
 public class ReturnRequest {
     private UUID customerId;
     private Long transactionId;
+    private String reason;
     private List<ReturnDetailRequest> returnDetails;
 }
