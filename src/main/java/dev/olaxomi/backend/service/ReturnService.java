@@ -2,6 +2,9 @@ package dev.olaxomi.backend.service;
 
 import dev.olaxomi.backend.dto.ReturnTransactionDetailDto;
 import dev.olaxomi.backend.dto.ReturnTransactionDto;
+import dev.olaxomi.backend.enums.ActionType;
+import dev.olaxomi.backend.enums.TargetType;
+import dev.olaxomi.backend.enums.TransactionType;
 import dev.olaxomi.backend.mapper.CustomerTransactionMapper;
 import dev.olaxomi.backend.mapper.ReturnTransactionMapper;
 import dev.olaxomi.backend.model.*;
@@ -13,6 +16,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -112,6 +116,79 @@ public class ReturnService {
             }
 
             variant.setInventory(variant.getInventory() + detailReq.getQuantity());
+
+            BigDecimal weight = BigDecimal.valueOf(variant.getWeight());
+            BigDecimal unitPrice = originalDetail.getUnitPrice();
+            int quantity = detailReq.getQuantity();
+            BigDecimal lineDiscount = detailReq.getLineDiscount() != null ? detailReq.getLineDiscount() : BigDecimal.ZERO;
+
+            BigDecimal lineTotal = weight.multiply(unitPrice)
+                    .multiply(BigDecimal.valueOf(quantity))
+                    .subtract(lineDiscount);
+
+            totalQuantity += quantity;
+            totalDiscount = totalDiscount.add(lineDiscount);
+            totalAmount = totalAmount.add(lineTotal);
+
+            ReturnTransactionDetail returnDetail = new ReturnTransactionDetail();
+            returnDetail.setProduct(product);
+            returnDetail.setVariant(variant);
+            returnDetail.setQuantity(quantity);
+            returnDetail.setUnitPrice(unitPrice);
+            returnDetail.setLineDiscount(lineDiscount);
+            returnDetails.add(returnDetail);
         }
+
+        for (ProductVariant variant : variantCache.values()) {
+            productVariantRepository.save(variant);
+        }
+
+        for (Product product : productCache.values()) {
+            productRepository.save(product); // If you want to adjust quantitySold, do so before saving
+        }
+
+        BigDecimal newWalletBalance = wallet.getBalance().add(totalAmount);
+        wallet.setBalance(newWalletBalance);
+        walletRepository.save(wallet);
+
+        WalletTransaction walletTx = new WalletTransaction();
+        walletTx.setWallet(wallet);
+        walletTx.setAmount(totalAmount); // positive because it's a refund
+        walletTx.setBalanceAfterTransaction(wallet.getBalance());
+        walletTx.setTransactionType(TransactionType.REFUND);
+        walletTx.setReference("Refund/Return on " + LocalDateTime.now());
+        walletTx.setDescription("Product return refund");
+        walletTransactionRepository.save(walletTx);
+
+        ReturnTransaction returnTx = new ReturnTransaction();
+        returnTx.setCustomer(customer);
+        returnTx.setTransaction(transaction);
+        returnTx.setTotalAmount(totalAmount);
+        returnTx.setTotalQuantity(totalQuantity);
+        returnTx.setTotalDiscount(totalDiscount);
+        returnTx.setReason(request.getReason());
+
+        for (ReturnTransactionDetail detail : returnDetails) {
+            detail.setReturnTransaction(returnTx);
+        }
+        returnTx.setReturnDetails(returnDetails);
+
+        ReturnTransaction savedReturnTx = returnRepository.save(returnTx);
+
+        String logDetails = String.format(
+                "Processed return transaction ID %d for customer ID %s, refund amount %s, total quantity %d",
+                savedReturnTx.getReturnId(),
+                customer.getCustomerId(),
+                totalAmount.toPlainString(),
+                totalQuantity
+        );
+        activityService.logActivity(
+                ActionType.PROCESS_RETURN,
+                TargetType.PRODUCT,
+                String.valueOf(savedReturnTx.getReturnId()),
+                logDetails
+        );
+
+        return returnTransactionMapper.toDto(savedReturnTx);
     }
 }
