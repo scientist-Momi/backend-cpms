@@ -15,7 +15,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-//@ToString(exclude = "transactionDetails")
+@ToString(exclude = "returnDetails")
 @Data
 @Entity
 @Table(name = "return_transactions")
