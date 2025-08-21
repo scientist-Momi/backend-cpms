@@ -120,14 +120,14 @@ public class ReturnService {
             BigDecimal weight = BigDecimal.valueOf(variant.getWeight());
             BigDecimal unitPrice = originalDetail.getUnitPrice();
             int quantity = detailReq.getQuantity();
-            BigDecimal lineDiscount = detailReq.getLineDiscount() != null ? detailReq.getLineDiscount() : BigDecimal.ZERO;
+//            BigDecimal lineDiscount = detailReq.getLineDiscount() != null ? detailReq.getLineDiscount() : BigDecimal.ZERO;
 
             BigDecimal lineTotal = weight.multiply(unitPrice)
-                    .multiply(BigDecimal.valueOf(quantity))
-                    .subtract(lineDiscount);
+                    .multiply(BigDecimal.valueOf(quantity));
+//                    .subtract(lineDiscount);
 
             totalQuantity += quantity;
-            totalDiscount = totalDiscount.add(lineDiscount);
+//            totalDiscount = totalDiscount.add(lineDiscount);
             totalAmount = totalAmount.add(lineTotal);
 
             ReturnTransactionDetail returnDetail = new ReturnTransactionDetail();
@@ -135,7 +135,7 @@ public class ReturnService {
             returnDetail.setVariant(variant);
             returnDetail.setQuantity(quantity);
             returnDetail.setUnitPrice(unitPrice);
-            returnDetail.setLineDiscount(lineDiscount);
+//            returnDetail.setLineDiscount(lineDiscount);
             returnDetails.add(returnDetail);
         }
 
@@ -165,7 +165,7 @@ public class ReturnService {
         returnTx.setTransaction(transaction);
         returnTx.setTotalAmount(totalAmount);
         returnTx.setTotalQuantity(totalQuantity);
-        returnTx.setTotalDiscount(totalDiscount);
+//        returnTx.setTotalDiscount(totalDiscount);
         returnTx.setReason(request.getReason());
 
         for (ReturnTransactionDetail detail : returnDetails) {

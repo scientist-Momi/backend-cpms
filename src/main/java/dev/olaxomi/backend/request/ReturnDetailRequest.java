@@ -10,5 +10,5 @@ public class ReturnDetailRequest {
     private Long variantId;
     private Integer quantity;
     private BigDecimal unitPrice;
-    private BigDecimal lineDiscount;
+//    private BigDecimal lineDiscount;
 }
