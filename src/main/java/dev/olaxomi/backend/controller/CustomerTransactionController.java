@@ -1,9 +1,12 @@
 package dev.olaxomi.backend.controller;
 
 import dev.olaxomi.backend.dto.CustomerTransactionDto;
+import dev.olaxomi.backend.dto.ReturnTransactionDto;
 import dev.olaxomi.backend.request.NewCustomerTransactionRequest;
+import dev.olaxomi.backend.request.ReturnRequest;
 import dev.olaxomi.backend.response.MessageResponse;
 import dev.olaxomi.backend.service.CustomerTransactionService;
+import dev.olaxomi.backend.service.ReturnService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +21,11 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RestController
 public class CustomerTransactionController {
     private final CustomerTransactionService transactionService;
+    private final ReturnService returnService;
 
-    public CustomerTransactionController(CustomerTransactionService transactionService) {
+    public CustomerTransactionController(CustomerTransactionService transactionService, ReturnService returnService) {
         this.transactionService = transactionService;
+        this.returnService = returnService;
     }
 
     @PreAuthorize("hasAuthority('VIEW_TRANSACTION')")
@@ -49,6 +54,17 @@ public class CustomerTransactionController {
     public ResponseEntity<MessageResponse> newTransaction(@RequestBody NewCustomerTransactionRequest request){
         try{
             CustomerTransactionDto transaction = transactionService.addCustomerTransaction(request);
+            return ResponseEntity.ok(new MessageResponse("success", transaction));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(NOT_ACCEPTABLE).body(new MessageResponse(e.getMessage(), null));
+        }
+    }
+
+    @PreAuthorize("hasAuthority('CREATE_TRANSACTION')")
+    @PostMapping("/return")
+    public ResponseEntity<MessageResponse> newTransaction(@RequestBody ReturnRequest request){
+        try{
+            ReturnTransactionDto transaction = returnService.processReturn(request);
             return ResponseEntity.ok(new MessageResponse("success", transaction));
         } catch (RuntimeException e) {
             return ResponseEntity.status(NOT_ACCEPTABLE).body(new MessageResponse(e.getMessage(), null));
