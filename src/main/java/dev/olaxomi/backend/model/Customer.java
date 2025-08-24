@@ -5,6 +5,7 @@ import dev.olaxomi.backend.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Data
 @Entity
+@EqualsAndHashCode(exclude = "customerWallet")
 @Table(name = "customers")
 public class Customer {
     @Id
