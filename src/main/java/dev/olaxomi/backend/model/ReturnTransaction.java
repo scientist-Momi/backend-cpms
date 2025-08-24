@@ -46,7 +46,7 @@ public class ReturnTransaction {
     @Column(name = "total_quantity", nullable = false)
     private Integer totalQuantity;
 
-    @Column(name = "total_discount", nullable = false)
+    @Column(name = "total_discount")
     private BigDecimal totalDiscount;
 
     private String reason;
