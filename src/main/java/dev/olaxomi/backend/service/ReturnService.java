@@ -174,6 +174,8 @@ public class ReturnService {
         returnTx.setReturnDetails(returnDetails);
 
         ReturnTransaction savedReturnTx = returnRepository.save(returnTx);
+        updateCustomerTransaction(transaction, request.getReturnDetails());
+
 
         String logDetails = String.format(
                 "Processed return transaction ID %d for customer ID %s, refund amount %s, total quantity %d",
@@ -193,7 +195,7 @@ public class ReturnService {
     }
 
     @Transactional
-    public void updateCustomerTransactionAfterReturn(CustomerTransaction transaction, List<ReturnDetailRequest> returnDetails) {
+    public void updateCustomerTransaction(CustomerTransaction transaction, List<ReturnDetailRequest> returnDetails) {
         int netQuantityChange = 0;
         BigDecimal netAmountChange = BigDecimal.ZERO;
 
@@ -208,7 +210,6 @@ public class ReturnService {
                         detail.getProduct().getId().equals(productId) &&
                                 detail.getVariant().getId().equals(variantId)
                 ) {
-                    // Track returned quantity: You may need to add a quantityReturned field if you don’t have one
                     if (detail.getQuantityReturned() == null) detail.setQuantityReturned(0);
                     detail.setQuantityReturned(detail.getQuantityReturned() + qtyReturned);
 

@@ -42,6 +42,9 @@ public class CustomerTransactionDetail {
     @Column(name = "line_discount", precision = 19, scale = 2)
     private BigDecimal lineDiscount;
 
+    @Column(name = "quantity_returned")
+    private Integer quantityReturned;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
