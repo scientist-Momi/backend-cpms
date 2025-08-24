@@ -15,6 +15,7 @@ public class CustomerTransactionDto {
     private BigDecimal totalAmount;
     private Integer totalQuantity;
     private BigDecimal totalDiscount;
+    private Boolean hasReturned;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<CustomerTransactionDetailDto> transactionDetails;

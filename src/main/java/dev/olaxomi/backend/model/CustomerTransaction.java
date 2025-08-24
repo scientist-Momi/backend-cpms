@@ -45,6 +45,9 @@ public class CustomerTransaction {
     @Column(name = "total_discount", nullable = false)
     private BigDecimal totalDiscount;
 
+    @Column(name = "has_returned", nullable = false)
+    private Boolean hasReturned = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
