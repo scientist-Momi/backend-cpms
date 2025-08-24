@@ -8,6 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,9 +25,11 @@ public class CustomerWalletMapper {
         if (wallet.getTransactions() != null) {
             List<WalletTransactionDto> txDtos = wallet.getTransactions()
                     .stream()
+                    .sorted(Comparator.comparing(WalletTransaction::getCreatedAt).reversed())
                     .map(this::toTransactionDto)
                     .collect(Collectors.toList());
             dto.setTransactions(txDtos);
+
         }
 
         return dto;
