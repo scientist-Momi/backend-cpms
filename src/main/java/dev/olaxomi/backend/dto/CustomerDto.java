@@ -23,6 +23,5 @@ public class CustomerDto {
     private String customerNotes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
     private CustomerWallet customerWallet;
 }
