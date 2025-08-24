@@ -191,4 +191,43 @@ public class ReturnService {
 
         return returnTransactionMapper.toDto(savedReturnTx);
     }
+
+    @Transactional
+    public void updateCustomerTransactionAfterReturn(CustomerTransaction transaction, List<ReturnDetailRequest> returnDetails) {
+        int netQuantityChange = 0;
+        BigDecimal netAmountChange = BigDecimal.ZERO;
+
+        for (ReturnDetailRequest detailReq : returnDetails) {
+            Long productId = detailReq.getProductId();
+            Long variantId = detailReq.getVariantId();
+            int qtyReturned = detailReq.getQuantity();
+
+            // Find matching detail in the transaction
+            for (CustomerTransactionDetail detail : transaction.getTransactionDetails()) {
+                if (
+                        detail.getProduct().getId().equals(productId) &&
+                                detail.getVariant().getId().equals(variantId)
+                ) {
+                    // Track returned quantity: You may need to add a quantityReturned field if you don’t have one
+                    if (detail.getQuantityReturned() == null) detail.setQuantityReturned(0);
+                    detail.setQuantityReturned(detail.getQuantityReturned() + qtyReturned);
+
+                    netQuantityChange += qtyReturned;
+                    BigDecimal unitPrice = detail.getUnitPrice() != null ? detail.getUnitPrice() : BigDecimal.ZERO;
+                    BigDecimal weight = BigDecimal.valueOf(detail.getVariant().getWeight());
+                    BigDecimal linePrice = weight.multiply(unitPrice).multiply(BigDecimal.valueOf(qtyReturned));
+                    netAmountChange = netAmountChange.add(linePrice);
+                    break;
+                }
+            }
+        }
+
+        // Subtract from transaction total quantity/amount
+        transaction.setTotalQuantity(transaction.getTotalQuantity() - netQuantityChange);
+        transaction.setTotalAmount(transaction.getTotalAmount().subtract(netAmountChange));
+
+        // Save changes (within @Transactional, so just call .save if needed)
+        customerTransactionRepository.save(transaction);
+    }
+
 }
