@@ -224,12 +224,10 @@ public class ReturnService {
             }
         }
 
-        // Subtract from transaction total quantity/amount
         transaction.setTotalQuantity(transaction.getTotalQuantity() - netQuantityChange);
         transaction.setTotalAmount(transaction.getTotalAmount().subtract(netAmountChange));
         transaction.setHasReturned(true);
 
-        // Save changes (within @Transactional, so just call .save if needed)
         customerTransactionRepository.save(transaction);
     }
 
