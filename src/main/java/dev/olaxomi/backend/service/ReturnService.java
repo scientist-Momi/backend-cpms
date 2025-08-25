@@ -213,7 +213,7 @@ public class ReturnService {
                     if (detail.getQuantityReturned() == null) detail.setQuantityReturned(0);
                     detail.setQuantityReturned(detail.getQuantityReturned() + qtyReturned);
 
-
+                    detail.setQuantity(detail.getQuantity() - qtyReturned);
                     netQuantityChange += qtyReturned;
                     BigDecimal unitPrice = detail.getUnitPrice() != null ? detail.getUnitPrice() : BigDecimal.ZERO;
                     BigDecimal weight = BigDecimal.valueOf(detail.getVariant().getWeight());
