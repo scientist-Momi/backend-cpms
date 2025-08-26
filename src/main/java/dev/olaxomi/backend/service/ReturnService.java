@@ -66,6 +66,12 @@ public class ReturnService {
         return returnTransactionMapper.toDtoList(transactions);
     }
 
+    public List<ReturnTransactionDto> getReturnsByTransaction(Long transactionId) {
+        List<ReturnTransaction> transactions = returnRepository.findByTransactionId(transactionId);
+        return returnTransactionMapper.toDtoList(transactions);
+    }
+
+
     public ReturnTransactionDto processReturn(ReturnRequest request){
         CustomerTransaction transaction = customerTransactionRepository.findById(request.getTransactionId())
                 .orElseThrow(() -> new EntityNotFoundException("Purchase not found"));

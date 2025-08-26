@@ -15,4 +15,7 @@ public interface ReturnTransactionRepository extends CrudRepository<ReturnTransa
 
     @Query("SELECT DISTINCT t FROM ReturnTransaction t JOIN t.returnDetails d WHERE d.product.id = :productId")
     List<ReturnTransaction> findByProductId(@Param("productId") Long productId);
+
+    List<ReturnTransaction> findByTransactionId(Long transactionId);
+
 }

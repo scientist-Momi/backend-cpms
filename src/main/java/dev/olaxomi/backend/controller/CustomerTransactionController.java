@@ -72,6 +72,13 @@ public class CustomerTransactionController {
     }
 
     @PreAuthorize("hasAuthority('VIEW_TRANSACTION')")
+    @GetMapping("/return/{transactionId}")
+    public ResponseEntity<MessageResponse> getReturns(@PathVariable Long transactionId){
+        List<ReturnTransactionDto> transactions = returnService.getReturnsByTransaction(transactionId);
+        return ResponseEntity.ok(new MessageResponse("success", transactions));
+    }
+
+    @PreAuthorize("hasAuthority('VIEW_TRANSACTION')")
     @GetMapping("/product/{productId}")
     public ResponseEntity<MessageResponse> getByProduct(@PathVariable Long productId){
         List<CustomerTransactionDto> transactions = transactionService.getTransactionsByProduct(productId);
