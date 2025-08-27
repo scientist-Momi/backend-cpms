@@ -67,7 +67,7 @@ public class ReturnService {
     }
 
     public List<ReturnTransactionDto> getReturnsByTransaction(Long transactionId) {
-        List<ReturnTransaction> transactions = returnRepository.findByTransaction_TransactionId(transactionId);
+        List<ReturnTransaction> transactions = returnRepository.findByTransaction_TransactionIdOrderByCreatedAtDesc(transactionId);
         return returnTransactionMapper.toDtoList(transactions);
     }
 
