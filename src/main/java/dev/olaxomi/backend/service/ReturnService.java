@@ -230,8 +230,8 @@ public class ReturnService {
             }
         }
 
-        transaction.setTotalQuantity(transaction.getTotalQuantity() - netQuantityChange);
-        transaction.setTotalAmount(transaction.getTotalAmount().subtract(netAmountChange));
+//        transaction.setTotalQuantity(transaction.getTotalQuantity() - netQuantityChange);
+//        transaction.setTotalAmount(transaction.getTotalAmount().subtract(netAmountChange));
         transaction.setHasReturned(true);
 
         customerTransactionRepository.save(transaction);
