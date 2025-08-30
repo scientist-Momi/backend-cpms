@@ -180,7 +180,7 @@ public class ReturnService {
         returnTx.setReturnDetails(returnDetails);
 
         ReturnTransaction savedReturnTx = returnRepository.save(returnTx);
-        updateCustomerTransaction(transaction, request.getReturnDetails());
+//        updateCustomerTransaction(transaction, request.getReturnDetails());
 
 
         String logDetails = String.format(
