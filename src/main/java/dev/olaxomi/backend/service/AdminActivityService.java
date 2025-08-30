@@ -82,7 +82,6 @@ public class AdminActivityService {
         return null;
     }
 
-
     private String getRequestIp() {
         HttpServletRequest request =
                 ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();

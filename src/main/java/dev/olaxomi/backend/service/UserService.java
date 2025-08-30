@@ -59,17 +59,17 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        String logDetails = String.format(
-                "Viewed user details for User ID: %d (%s)",
-                user.getId(),
-                user.getEmail()
-        );
-        activityService.logActivity(
-                ActionType.VIEW_USER,
-                TargetType.USER,
-                user.getId().toString(),
-                logDetails
-        );
+//        String logDetails = String.format(
+//                "Viewed user details for User ID: %d (%s)",
+//                user.getId(),
+//                user.getEmail()
+//        );
+//        activityService.logActivity(
+//                ActionType.VIEW_USER,
+//                TargetType.USER,
+//                user.getId().toString(),
+//                logDetails
+//        );
 
         return userMapper.toDto(user);
     }
@@ -78,17 +78,17 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        String logDetails = String.format(
-                "Viewed user details for User ID: %d (%s)",
-                user.getId(),
-                user.getEmail()
-        );
-        activityService.logActivity(
-                ActionType.VIEW_USER,
-                TargetType.USER,
-                user.getId().toString(),
-                logDetails
-        );
+//        String logDetails = String.format(
+//                "Viewed user details for User ID: %d (%s)",
+//                user.getId(),
+//                user.getEmail()
+//        );
+//        activityService.logActivity(
+//                ActionType.VIEW_USER,
+//                TargetType.USER,
+//                user.getId().toString(),
+//                logDetails
+//        );
         return userMapper.toDto(user);
     }
 
