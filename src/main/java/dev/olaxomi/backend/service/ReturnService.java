@@ -293,6 +293,8 @@ public class ReturnService {
 
         ReturnTransaction savedReturnTx = returnRepository.save(returnTx);
 
+        updateCustomerTransaction(transaction, request.getReturnDetails());
+
         String logDetails = String.format(
                 "Processed return transaction ID %d for customer ID %s, refund amount %s, total quantity %d",
                 savedReturnTx.getReturnId(),
@@ -312,39 +314,28 @@ public class ReturnService {
 
     @Transactional
     public void updateCustomerTransaction(CustomerTransaction transaction, List<ReturnDetailRequest> returnDetails) {
-        int netQuantityChange = 0;
-        BigDecimal netAmountChange = BigDecimal.ZERO;
-
         for (ReturnDetailRequest detailReq : returnDetails) {
             Long productId = detailReq.getProductId();
             Long variantId = detailReq.getVariantId();
             int qtyReturned = detailReq.getQuantity();
 
-            // Find matching detail in the transaction
             for (CustomerTransactionDetail detail : transaction.getTransactionDetails()) {
-                if (
-                        detail.getProduct().getId().equals(productId) &&
-                                detail.getVariant().getId().equals(variantId)
-                ) {
-                    if (detail.getQuantityReturned() == null) detail.setQuantityReturned(0);
-                    detail.setQuantityReturned(detail.getQuantityReturned() + qtyReturned);
+                if (detail.getProduct().getId().equals(productId) &&
+                        detail.getVariant().getId().equals(variantId)) {
 
-                    detail.setQuantity(detail.getQuantity() - qtyReturned);
-                    netQuantityChange += qtyReturned;
-                    BigDecimal unitPrice = detail.getUnitPrice() != null ? detail.getUnitPrice() : BigDecimal.ZERO;
-                    BigDecimal weight = BigDecimal.valueOf(detail.getVariant().getWeight());
-                    BigDecimal linePrice = weight.multiply(unitPrice).multiply(BigDecimal.valueOf(qtyReturned));
-                    netAmountChange = netAmountChange.add(linePrice);
+                    if (detail.getQuantityReturned() == null) {
+                        detail.setQuantityReturned(0);
+                    }
+
+                    detail.setQuantityReturned(detail.getQuantityReturned() + qtyReturned);
                     break;
                 }
             }
         }
 
-//        transaction.setTotalQuantity(transaction.getTotalQuantity() - netQuantityChange);
-//        transaction.setTotalAmount(transaction.getTotalAmount().subtract(netAmountChange));
         transaction.setHasReturned(true);
-
         customerTransactionRepository.save(transaction);
     }
+
 
 }

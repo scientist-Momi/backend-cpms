@@ -64,7 +64,7 @@ public class CustomerTransactionController {
     @PostMapping("/return")
     public ResponseEntity<MessageResponse> newTransaction(@RequestBody ReturnRequest request){
         try{
-            ReturnTransactionDto transaction = returnService.processReturn(request);
+            ReturnTransactionDto transaction = returnService.processReturn2(request);
             return ResponseEntity.ok(new MessageResponse("success", transaction));
         } catch (RuntimeException e) {
             return ResponseEntity.status(NOT_ACCEPTABLE).body(new MessageResponse(e.getMessage(), null));
