@@ -82,28 +82,23 @@ public class CustomerTransactionService {
 
     @Transactional
     public CustomerTransactionDto addCustomerTransaction(NewCustomerTransactionRequest request) {
-        // 1. Fetch customer and validate wallet presence
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
 
         CustomerWallet wallet = customer.getCustomerWallet();
         if (wallet == null) throw new IllegalStateException("Customer does not have a wallet.");
 
-        // Prepare totals
         int totalQuantity = 0;
         BigDecimal totalDiscount = BigDecimal.ZERO;
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        // Cache loaded products and variants to avoid duplicate DB calls
         Map<Long, ProductVariant> variantCache = new HashMap<>();
         Map<Long, Product> productCache = new HashMap<>();
 
-        // 2. Calculate totals by looping through details once
         for (NewCustomerTransactionDetailRequest detail : request.getTransactionDetails()) {
             Long variantId = detail.getVariantId();
             Long productId = detail.getProductId();
 
-            // Load variant from cache or DB
             ProductVariant variant = variantCache.computeIfAbsent(variantId, id ->
                     productVariantRepository.findById(id)
                             .orElseThrow(() -> new EntityNotFoundException("Product variant not found for ID: " + id))
@@ -114,10 +109,8 @@ public class CustomerTransactionService {
                 throw new EntityNotFoundException("Product not found for variant ID: " + variantId);
             }
 
-            // Cache product if not cached
             productCache.putIfAbsent(product.getId(), product);
 
-            // Validate variant belongs to specified product if productId is provided
             if (productId != null && !product.getId().equals(productId)) {
                 throw new IllegalArgumentException(
                         "Variant ID " + variantId + " does not belong to product ID " + productId);
@@ -127,13 +120,11 @@ public class CustomerTransactionService {
             BigDecimal weight = BigDecimal.valueOf(variant.getWeight());
             int quantity = detail.getQuantity();
 
-            // Update quantitySold
             int previousSold = product.getQuantitySold();
             product.setQuantitySold(previousSold + quantity);
 
             BigDecimal lineDiscount = detail.getLineDiscount() != null ? detail.getLineDiscount() : BigDecimal.ZERO;
 
-            // Correct calculation: weight * unit price * quantity - discount
             BigDecimal lineTotal = weight.multiply(unitPrice)
                     .multiply(BigDecimal.valueOf(quantity))
                     .subtract(lineDiscount);
@@ -147,30 +138,26 @@ public class CustomerTransactionService {
             productRepository.save(product);
         }
 
-        BigDecimal newBalance = getBigDecimal(customer, wallet, totalAmount);
+        BigDecimal newBalance = getNewBalance(customer, wallet, totalAmount);
 
-        // 3. Deduct totalAmount from wallet balance and save
         wallet.setBalance(newBalance);
         walletRepository.save(wallet);
 
-        // 4. Create and save wallet transaction for this purchase
         WalletTransaction walletTx = new WalletTransaction();
         walletTx.setWallet(wallet);
-        walletTx.setAmount(totalAmount.negate());  // negative because money is deducted
+        walletTx.setAmount(totalAmount.negate());
         walletTx.setBalanceAfterTransaction(wallet.getBalance());
         walletTx.setTransactionType(TransactionType.PURCHASE);
         walletTx.setReference("Purchase on " + LocalDateTime.now());
         walletTx.setDescription("Purchase of products");
         walletTransactionRepository.save(walletTx);
 
-        // 5. Create CustomerTransaction entity
         CustomerTransaction transaction = new CustomerTransaction();
         transaction.setCustomer(customer);
         transaction.setTotalAmount(totalAmount);
         transaction.setTotalQuantity(totalQuantity);
         transaction.setTotalDiscount(totalDiscount);
 
-        // 6. Build CustomerTransactionDetail list based on cached entities
         List<CustomerTransactionDetail> details = new ArrayList<>();
         for (NewCustomerTransactionDetailRequest detailReq : request.getTransactionDetails()) {
             Product product = productCache.get(detailReq.getProductId());
@@ -187,7 +174,6 @@ public class CustomerTransactionService {
         }
         transaction.setTransactionDetails(details);
 
-        // 7. Save transaction (cascades details if configured)
         CustomerTransaction savedTransaction = customerTransactionRepository.save(transaction);
 
         String logDetails = String.format(
@@ -207,7 +193,137 @@ public class CustomerTransactionService {
         return customerTransactionMapper.toDto(savedTransaction);
     }
 
-    private static BigDecimal getBigDecimal(Customer customer, CustomerWallet wallet, BigDecimal totalAmount) {
+    @Transactional
+    public CustomerTransactionDto addCustomerTransaction2(NewCustomerTransactionRequest request) {
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+
+        CustomerWallet wallet = customer.getCustomerWallet();
+        if (wallet == null) throw new IllegalStateException("Customer does not have a wallet.");
+
+        int totalQuantity = 0;
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        Map<Long, ProductVariant> variantCache = new HashMap<>();
+        Map<Long, Product> productCache = new HashMap<>();
+
+        for (NewCustomerTransactionDetailRequest detail : request.getTransactionDetails()) {
+            Long variantId = detail.getVariantId();
+            Long productId = detail.getProductId();
+
+            ProductVariant variant = variantCache.computeIfAbsent(variantId, id ->
+                    productVariantRepository.findById(id)
+                            .orElseThrow(() -> new EntityNotFoundException("Product variant not found for ID: " + id))
+            );
+
+            Product product = variant.getProduct();
+            if (product == null) {
+                throw new EntityNotFoundException("Product not found for variant ID: " + variantId);
+            }
+
+            productCache.putIfAbsent(product.getId(), product);
+
+            if (productId != null && !product.getId().equals(productId)) {
+                throw new IllegalArgumentException(
+                        "Variant ID " + variantId + " does not belong to product ID " + productId);
+            }
+
+            BigDecimal unitPrice = product.getLatestPrice();
+            BigDecimal weight = BigDecimal.valueOf(variant.getWeight());
+            int quantity = detail.getQuantity();
+
+            int previousSold = product.getQuantitySold();
+            product.setQuantitySold(previousSold + quantity);
+
+            BigDecimal lineDiscount = detail.getLineDiscount() != null ? detail.getLineDiscount() : BigDecimal.ZERO;
+
+            BigDecimal lineTotal = weight.multiply(unitPrice)
+                    .multiply(BigDecimal.valueOf(quantity))
+                    .subtract(lineDiscount);
+
+            totalQuantity += quantity;
+            totalDiscount = totalDiscount.add(lineDiscount);
+            totalAmount = totalAmount.add(lineTotal);
+        }
+
+        for (Product product : productCache.values()) {
+            productRepository.save(product);
+        }
+
+        BigDecimal newBalance = getNewBalance(customer, wallet, totalAmount);
+
+        wallet.setBalance(newBalance);
+        walletRepository.save(wallet);
+
+        WalletTransaction walletTx = new WalletTransaction();
+        walletTx.setWallet(wallet);
+        walletTx.setAmount(totalAmount.negate());
+        walletTx.setBalanceAfterTransaction(wallet.getBalance());
+        walletTx.setTransactionType(TransactionType.PURCHASE);
+        walletTx.setReference("Purchase on " + LocalDateTime.now());
+        walletTx.setDescription("Purchase of products");
+        walletTransactionRepository.save(walletTx);
+
+        CustomerTransaction transaction = new CustomerTransaction();
+        transaction.setCustomer(customer);
+        transaction.setTotalAmount(totalAmount);
+        transaction.setTotalQuantity(totalQuantity);
+        transaction.setTotalDiscount(totalDiscount);
+
+//        List<CustomerTransactionDetail> details = new ArrayList<>();
+
+        Map<String, AggregatedDetail> aggregatedDetails = new HashMap<>();
+        for (NewCustomerTransactionDetailRequest detail : request.getTransactionDetails()) {
+            String key = detail.getProductId() + "-" + detail.getVariantId();
+            AggregatedDetail aggDetail = aggregatedDetails.get(key);
+            if (aggDetail == null) {
+                aggDetail = new AggregatedDetail(detail.getProductId(), detail.getVariantId(),
+                        detail.getQuantity(), detail.getLineDiscount() != null ? detail.getLineDiscount() : BigDecimal.ZERO);
+                aggregatedDetails.put(key, aggDetail);
+            } else {
+                aggDetail.quantity += detail.getQuantity();
+                aggDetail.lineDiscount = aggDetail.lineDiscount.add(detail.getLineDiscount() != null ? detail.getLineDiscount() : BigDecimal.ZERO);
+            }
+        }
+
+        List<CustomerTransactionDetail> details = new ArrayList<>();
+        for (AggregatedDetail agg : aggregatedDetails.values()) {
+            Product product = productCache.get(agg.productId);
+            ProductVariant variant = variantCache.get(agg.variantId);
+
+            CustomerTransactionDetail detail = new CustomerTransactionDetail();
+            detail.setTransaction(transaction);
+            detail.setProduct(product);
+            detail.setVariant(variant);
+            detail.setQuantity(agg.quantity);
+            detail.setUnitPrice(product.getLatestPrice());
+            detail.setLineDiscount(agg.lineDiscount);
+            details.add(detail);
+        }
+        transaction.setTransactionDetails(details);
+
+
+        CustomerTransaction savedTransaction = customerTransactionRepository.save(transaction);
+
+        String logDetails = String.format(
+                "Created transaction ID %d for customer ID %s with totalAmount %s and totalQuantity %d",
+                savedTransaction.getTransactionId(),
+                customer.getCustomerId(),
+                totalAmount.toPlainString(),
+                totalQuantity
+        );
+
+        activityService.logActivity(
+                ActionType.CREATE_TRANSACTION,
+                TargetType.TRANSACTION,
+                String.valueOf(savedTransaction.getTransactionId()),
+                logDetails
+        );
+        return customerTransactionMapper.toDto(savedTransaction);
+    }
+
+    private static BigDecimal getNewBalance(Customer customer, CustomerWallet wallet, BigDecimal totalAmount) {
         BigDecimal creditLimit = customer.getCreditLimit() != null ? customer.getCreditLimit() : BigDecimal.ZERO;
         BigDecimal newBalance = wallet.getBalance().subtract(totalAmount);
         BigDecimal negativeCreditLimit = creditLimit.negate();
@@ -357,5 +473,18 @@ public class CustomerTransactionService {
 //        return customerMapper.toDto(purchase.getCustomer());
 //    }
 
+    private static class AggregatedDetail {
+        Long productId;
+        Long variantId;
+        int quantity;
+        BigDecimal lineDiscount;
+
+        public AggregatedDetail(Long productId, Long variantId, int quantity, BigDecimal lineDiscount) {
+            this.productId = productId;
+            this.variantId = variantId;
+            this.quantity = quantity;
+            this.lineDiscount = lineDiscount;
+        }
+    }
 
 }

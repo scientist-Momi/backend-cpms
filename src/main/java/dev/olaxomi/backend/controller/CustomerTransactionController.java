@@ -53,7 +53,7 @@ public class CustomerTransactionController {
     @PostMapping("/new")
     public ResponseEntity<MessageResponse> newTransaction(@RequestBody NewCustomerTransactionRequest request){
         try{
-            CustomerTransactionDto transaction = transactionService.addCustomerTransaction(request);
+            CustomerTransactionDto transaction = transactionService.addCustomerTransaction2(request);
             return ResponseEntity.ok(new MessageResponse("success", transaction));
         } catch (RuntimeException e) {
             return ResponseEntity.status(NOT_ACCEPTABLE).body(new MessageResponse(e.getMessage(), null));
