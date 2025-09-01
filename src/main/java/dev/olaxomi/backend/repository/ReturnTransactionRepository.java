@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ReturnTransactionRepository extends CrudRepository<ReturnTransaction, Long> {
@@ -18,6 +19,5 @@ public interface ReturnTransactionRepository extends CrudRepository<ReturnTransa
 
     List<ReturnTransaction> findByTransaction_TransactionIdOrderByCreatedAtDesc(Long transactionId);
 
-
-
+    Optional<ReturnTransaction> findByTransaction_TransactionId(Long transactionId);
 }
