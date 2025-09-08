@@ -30,6 +30,11 @@ public class PermissionService {
                 .orElseThrow(() -> new RuntimeException("User permissions not found"));
     }
 
+    public UserPermission getPermissionsByEmail(String email) {
+        return permissionRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User permissions not found"));
+    }
+
     public UserPermission updatePermission(Long userId, Set<Permission> permissions){
         User userFound = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

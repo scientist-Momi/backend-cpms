@@ -113,16 +113,19 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<MessageResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        // userDetails contains the authenticated user's info
         UserDto user = userService.getUserByEmail(userDetails.getUsername());
         return ResponseEntity.ok(new MessageResponse("success", user));
     }
 
+    @GetMapping("/me/permissions")
+    public ResponseEntity<MessageResponse> getCurrentUserPermissions(@AuthenticationPrincipal UserDetails userDetails) {
+        UserPermission permissions = permissionService.getPermissionsByEmail(userDetails.getUsername());
+        return ResponseEntity.ok(new MessageResponse("success", permissions.getPermissions()));
+    }
 
     @PreAuthorize("hasAuthority('UPDATE_USER')")
     @PutMapping("/{userId}/permission/update")
     public ResponseEntity<MessageResponse> updatePermission(@PathVariable Long userId, @RequestBody UpdatePermissionRequest request){
-        //UserPermission permission = permissionService.getPermissions(authenticatedUser.getId());
         try{
             UserPermission updatedPermission = permissionService.updatePermission(userId, request.getPermissions());
             return ResponseEntity.ok(new MessageResponse("success", updatedPermission.getPermissions()));
@@ -134,7 +137,6 @@ public class UserController {
     @PreAuthorize("hasAuthority('UPDATE_USER')")
     @GetMapping("/{userId}/permissions")
     public ResponseEntity<MessageResponse> userPermission(@PathVariable Long userId){
-        //UserPermission permission = permissionService.getPermissions(authenticatedUser.getId());
         try{
             UserPermission permissions = permissionService.getPermissions(userId);
             return ResponseEntity.ok(new MessageResponse("success", permissions.getPermissions()));

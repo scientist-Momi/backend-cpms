@@ -59,7 +59,21 @@ public class CustomerService {
             throw new IllegalArgumentException("Phone already exists");
         }
 
-        Customer customer = getCustomer(request);
+        Customer customer = new Customer();
+        customer.setName(request.getName());
+        customer.setAlias(request.getAlias());
+        customer.setEmail(request.getEmail());
+        customer.setPhone(request.getPhone());
+        customer.setAddress(request.getAddress());
+        customer.setStatus(Status.ACTIVE);
+        customer.setCustomerType(request.getCustomerType());
+        customer.setCreditLimit(BigDecimal.valueOf(50000));
+        customer.setCustomerNotes(request.getCustomerNotes());
+
+        CustomerWallet wallet = new CustomerWallet();
+        wallet.setBalance(BigDecimal.ZERO);
+        wallet.setCustomer(customer);
+        customer.setCustomerWallet(wallet);
 
         Customer savedCustomer = customerRepository.save(customer);
 
@@ -76,25 +90,6 @@ public class CustomerService {
         );
 
         return customerMapper.toDto(customerRepository.save(customer));
-    }
-
-    private static Customer getCustomer(NewCustomerRequest request) {
-        Customer customer = new Customer();
-        customer.setName(request.getName());
-        customer.setAlias(request.getAlias());
-        customer.setEmail(request.getEmail());
-        customer.setPhone(request.getPhone());
-        customer.setAddress(request.getAddress());
-        customer.setStatus(Status.ACTIVE);
-        customer.setCustomerType(request.getCustomerType());
-        customer.setCreditLimit(BigDecimal.valueOf(50000));
-        customer.setCustomerNotes(request.getCustomerNotes());
-
-        CustomerWallet wallet = new CustomerWallet();
-        wallet.setBalance(BigDecimal.ZERO);
-        wallet.setCustomer(customer);
-        customer.setCustomerWallet(wallet);
-        return customer;
     }
 
     @Transactional
