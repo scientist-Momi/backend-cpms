@@ -34,18 +34,25 @@ public class AuthenticationController {
         this.permissionService = permissionService;
     }
 
-    @PreAuthorize("hasAuthority('CREATE_USER')")
+//    @PreAuthorize("hasAuthority('CREATE_USER')")
+//    @PostMapping("/register")
+//    public ResponseEntity<MessageResponse> register(@RequestBody NewUserRequest registerUserDto) {
+//        try{
+//            UserDto registeredUser = authenticationService.register(registerUserDto);
+//            return ResponseEntity.ok(new MessageResponse("success", registeredUser));
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.status(CONFLICT).body(new MessageResponse(e.getMessage(), null));
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
     @PostMapping("/register")
-    public ResponseEntity<MessageResponse> register(@RequestBody NewUserRequest registerUserDto) {
-        try{
-            UserDto registeredUser = authenticationService.register(registerUserDto);
-            return ResponseEntity.ok(new MessageResponse("success", registeredUser));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(CONFLICT).body(new MessageResponse(e.getMessage(), null));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public ResponseEntity<MessageResponse> register(@RequestBody NewUserRequest registerUserDto) throws JsonProcessingException {
+        UserDto registeredUser = authenticationService.register(registerUserDto);
+        return ResponseEntity.ok(new MessageResponse("success", registeredUser));
     }
+
 
     @PostMapping("/authenticate")
     public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserRequest loginUserDto) {

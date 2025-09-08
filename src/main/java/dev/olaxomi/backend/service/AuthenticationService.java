@@ -7,6 +7,7 @@ import dev.olaxomi.backend.enums.ActionType;
 import dev.olaxomi.backend.enums.Permission;
 import dev.olaxomi.backend.enums.Role;
 import dev.olaxomi.backend.enums.TargetType;
+import dev.olaxomi.backend.exception.EmailAlreadyExistsException;
 import dev.olaxomi.backend.mapper.UserMapper;
 import dev.olaxomi.backend.model.UserPermission;
 import dev.olaxomi.backend.request.LoginUserRequest;
@@ -63,14 +64,14 @@ public class AuthenticationService {
 
     public UserDto register(NewUserRequest input) throws JsonProcessingException {
         if(userRepository.existsByEmail(input.getEmail())){
-            throw new RuntimeException("Email already exists.");
+            throw new EmailAlreadyExistsException(input.getEmail());
         }
         User user = new User();
         user.setFullName(input.getFullName());
         user.setEmail(input.getEmail());
         user.setPhone(input.getPhone());
         user.setPassword(passwordEncoder.encode(input.getPassword()));
-        user.setRole(Role.MINOR_ADMIN);
+        user.setRole(Role.MAIN_ADMIN);
         user.setEnabled(true);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -78,11 +79,11 @@ public class AuthenticationService {
         User savedUser = userRepository.save(user);
         Set<Permission> defaultPermissions = Set.of(Permission.VIEW_CUSTOMER, Permission.VIEW_PRODUCT, Permission.VIEW_TRANSACTION);
 //        Set<Permission> defaultPermissions = Set.of(Permission.values());
-        System.out.println(new ObjectMapper().writeValueAsString(defaultPermissions)); // Debugging
+//        System.out.println(new ObjectMapper().writeValueAsString(defaultPermissions));
         permissionService.updatePermission(savedUser.getId(), defaultPermissions);
 
         String logDetails = String.format(
-                "Created new user with user ID %s",
+                "Created new admin with user ID %s",
                 savedUser.getId()
         );
 
