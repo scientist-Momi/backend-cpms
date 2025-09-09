@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface PermissionRepository extends CrudRepository<UserPermission, Long> {
     Optional<UserPermission> findByUserId(Long userId);
-    Optional<UserPermission> findByEmail(String email);
+    Optional<UserPermission> findByUserEmail(String email);
 
 }

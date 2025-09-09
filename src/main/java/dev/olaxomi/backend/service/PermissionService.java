@@ -31,7 +31,7 @@ public class PermissionService {
     }
 
     public UserPermission getPermissionsByEmail(String email) {
-        return permissionRepository.findByEmail(email)
+        return permissionRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException("User permissions not found"));
     }
 
