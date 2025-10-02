@@ -67,7 +67,7 @@ public class CustomerService {
         customer.setAddress(request.getAddress());
         customer.setStatus(Status.ACTIVE);
         customer.setCustomerType(request.getCustomerType());
-        customer.setCreditLimit(BigDecimal.valueOf(50000));
+        customer.setCreditLimit(BigDecimal.valueOf(500000));
         customer.setCustomerNotes(request.getCustomerNotes());
 
         CustomerWallet wallet = new CustomerWallet();
